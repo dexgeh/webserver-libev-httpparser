@@ -1,0 +1,3 @@
+project todos
+- support for connection keep-alive
+- write a file server example

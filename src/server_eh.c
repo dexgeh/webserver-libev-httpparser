@@ -68,7 +68,7 @@ static http_parser_settings parser_settings =
     ,.on_header_field     = header_field_cb
     ,.on_header_value     = header_value_cb
     ,.on_url              = url_cb
-    ,.on_body             = NULL
+    ,.on_body             = body_cb
 };
 
 struct http_request *parse_request(char *request_data, int len) {
