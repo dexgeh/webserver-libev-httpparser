@@ -1,0 +1,1 @@
+http server library written in C using libev and Ryan Dahl's http parser (see http://github.com/joyent/http-parser )
