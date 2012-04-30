@@ -71,6 +71,7 @@ struct http_server {
     struct ev_loop *loop;
     struct sockaddr_in *listen_addr;
     void (*handle_request)(struct http_request *request, int fd);
+    struct ev_io *ev_accept;
 };
 
 int http_server_loop(struct http_server *server);

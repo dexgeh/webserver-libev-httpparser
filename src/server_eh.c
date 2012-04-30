@@ -98,18 +98,15 @@ struct client {
     void (*handle_request)(struct http_request *request, int fd);
 };
 
-#define get_client_and_request(ev_type) \
-    struct client *client = \
-        (struct client *) \
-        (((char *) w) - offsetof(struct client, ev_type)); \
-    struct http_request *request = client->request;
-
 static void write_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
     if (!(revents & EV_WRITE)) {
         ev_io_stop(EV_A_ w);
         return;
     }
-    get_client_and_request(ev_write)
+    struct client *client =
+        (struct client *)
+        (((char *) w) - offsetof(struct client, ev_write));
+    struct http_request *request = client->request;
     if (request == NULL) {
         write(client->fd, "HTTP/1.1 400 Bad Request\r\n\r\n", 24);
         close(client->fd);
@@ -131,7 +128,9 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
         ev_io_stop(EV_A_ w);
         return;
     }
-    get_client_and_request(ev_read)
+    struct client *client =
+        (struct client *)
+        (((char *) w) - offsetof(struct client, ev_read));
     char *rbuff[REQUEST_BUFFER_SIZE + 1];
     int sum = 0, len = 0;
     client->request_data = NULL;
@@ -210,6 +209,7 @@ int http_server_loop(struct http_server *server) {
     main_client->handle_request = server->handle_request;
     ev_io_init(&main_client->ev_accept, accept_cb, listen_fd, EV_READ);
     ev_io_start(server->loop, &main_client->ev_accept);
+    server->ev_accept = &main_client->ev_accept;
     ev_loop(server->loop, 0);
     return 0;
 }
