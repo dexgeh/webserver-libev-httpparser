@@ -33,6 +33,8 @@ int null_cb(http_parser *parser) { return 0; }
 int url_cb(http_parser *parser, const char *buf, size_t len) {
     struct http_request *request = (struct http_request *) parser->data;
     request->method = parser->method;
+    request->http_major = parser->http_major;
+    request->http_minor = parser->http_minor;
     alloc_cpy(request->url, buf, len)
     return 0;
 }
@@ -78,6 +80,9 @@ struct http_request *parse_request(char *request_data, int len) {
     parser->data = request;
     int res = http_parser_execute(parser, &parser_settings, request_data, len);
     if (res == len) {
+        if (http_should_keep_alive(parser)) {
+            request->flags |= F_HREQ_KEEPALIVE;
+        }
         free(parser);
         return request;
     }
@@ -116,7 +121,6 @@ static void write_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
         return;
     }
     client->handle_request(request, client->fd);
-    close(client->fd); //TODO Connection: Keep-Alive?
     delete_http_request(request);
     free(client->request_data);
     free(client);

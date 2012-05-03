@@ -17,7 +17,7 @@
 // char PUT = 4;
 
 void handle_request(struct http_request *request, int fd) {
-    //write(fd, "HTTP/1.0 200 OK\r\n\r\n", 19);
+    printf("%d\n", fd);
     write(fd, "HTTP/1.1 200 OK\r\n\r\n", 19);
     struct http_header *header = request->headers;
     write(fd, "<pre>Headers:\n", 14);
@@ -28,7 +28,11 @@ void handle_request(struct http_request *request, int fd) {
         write(fd, "\n", 1);
         header = header->next;
     }
+    if (request->flags & F_HREQ_KEEPALIVE) {
+         write(fd, "\nis keepalive.\n", 16);
+    }
     write(fd, "\r\n\r\n", 4);
+    close(fd);
 }
 
 static struct http_server server;

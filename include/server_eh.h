@@ -26,14 +26,21 @@ static inline void delete_http_header(struct http_header *header) {
 
 struct http_request {
     char method, *url, *body;
+    unsigned int flags;
+    unsigned short http_major, http_minor;
     struct http_header *headers;
 };
+
+#define F_HREQ_KEEPALIVE 0x01
 
 static inline struct http_request *new_http_request() {
     struct http_request *request = malloc(sizeof(struct http_request));
     request->headers = NULL;
     request->url = NULL;
     request->body = NULL;
+    request->flags = 0;
+    request->http_major = 0;
+    request->http_minor = 0;
     return request;
 }
 
