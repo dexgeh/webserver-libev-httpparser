@@ -152,7 +152,7 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
         }
     } while (len == REQUEST_BUFFER_SIZE);
     client->request = NULL;
-    client->request = parse_request(client->request_data, len);
+    client->request = parse_request(client->request_data, sum);
     ev_io_stop(EV_A_ w);
     ev_io_init(&client->ev_write, write_cb, client->fd, EV_WRITE);
     ev_io_start(loop, &client->ev_write);
