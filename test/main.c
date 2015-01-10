@@ -17,7 +17,6 @@
 // char PUT = 4;
 
 void handle_request(struct http_request *request, int fd) {
-    printf("%d\n", fd);
     write(fd, "HTTP/1.1 200 OK\r\n\r\n", 19);
     struct http_header *header = request->headers;
     write(fd, "<pre>Headers:\n", 14);
@@ -31,6 +30,9 @@ void handle_request(struct http_request *request, int fd) {
     if (request->flags & F_HREQ_KEEPALIVE) {
          write(fd, "\nis keepalive.\n", 16);
     }
+    char *my_data = (char*) request->data;
+    write(fd, "my string is ", 13);
+    write(fd, my_data, strlen(my_data));
     write(fd, "\r\n\r\n", 4);
     close(fd);
 }
@@ -52,15 +54,18 @@ int main(int argc, char **argv) {
     listen_addr.sin_port = htons(9876);
     server.listen_addr = &listen_addr;
     server.handle_request = handle_request;
+    server.data = "this is my string";
 
     // ignore SIGPIPE
     struct sigaction on_sigpipe;
+    memset(&on_sigpipe, 0, sizeof(struct sigaction));
     on_sigpipe.sa_handler = SIG_IGN;
     sigemptyset(&on_sigpipe.sa_mask);
     sigaction(SIGPIPE, &on_sigpipe, NULL);
 
     // handle C-c
     struct sigaction on_sigint;
+    memset(&on_sigint, 0, sizeof(struct sigaction));
     on_sigint.sa_handler = sigint_handler;
     sigemptyset(&on_sigint.sa_mask);
     on_sigint.sa_flags = 0;

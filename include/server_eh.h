@@ -29,6 +29,7 @@ struct http_request {
     unsigned int flags;
     unsigned short http_major, http_minor;
     struct http_header *headers;
+    void *data;
 };
 
 #define F_HREQ_KEEPALIVE 0x01
@@ -41,6 +42,7 @@ static inline struct http_request *new_http_request() {
     request->flags = 0;
     request->http_major = 0;
     request->http_minor = 0;
+    request->data = NULL;
     return request;
 }
 
@@ -79,6 +81,7 @@ struct http_server {
     struct sockaddr_in *listen_addr;
     void (*handle_request)(struct http_request *request, int fd);
     struct ev_io *ev_accept;
+    void *data;
 };
 
 int http_server_loop(struct http_server *server);

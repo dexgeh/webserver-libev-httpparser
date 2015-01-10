@@ -101,6 +101,7 @@ struct client {
     char *request_data;
     struct http_request *request;
     void (*handle_request)(struct http_request *request, int fd);
+    void *data;
 };
 
 static void write_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
@@ -153,6 +154,7 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
     } while (len == REQUEST_BUFFER_SIZE);
     client->request = NULL;
     client->request = parse_request(client->request_data, sum);
+    client->request->data = client->data;
     ev_io_stop(EV_A_ w);
     ev_io_init(&client->ev_write, write_cb, client->fd, EV_WRITE);
     ev_io_start(loop, &client->ev_write);
@@ -174,6 +176,7 @@ static void accept_cb(struct ev_loop *loop, struct ev_io *w, int revents) {
     }
     struct client *client = malloc(sizeof(struct client));
     client->handle_request = main_client->handle_request;
+    client->data = main_client->data;
     client->fd = client_fd;
     ev_io_init(&client->ev_read, read_cb, client->fd, EV_READ);
     ev_io_start(loop, &client->ev_read);
@@ -211,6 +214,7 @@ int http_server_loop(struct http_server *server) {
     }
     struct client *main_client = malloc(sizeof(struct client));
     main_client->handle_request = server->handle_request;
+    main_client->data = server->data;
     ev_io_init(&main_client->ev_accept, accept_cb, listen_fd, EV_READ);
     ev_io_start(server->loop, &main_client->ev_accept);
     server->ev_accept = &main_client->ev_accept;
